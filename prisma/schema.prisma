@@ -1,0 +1,139 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  displayName  String
+  passwordHash String
+  role         String   @default("PARTNER")
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memories        Memory[]
+  diaryEntries    DiaryEntry[]
+  sentLetters     Letter[]     @relation("SentLetters")
+  receivedLetters Letter[]     @relation("ReceivedLetters")
+  sessions        Session[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Memory {
+  id           String   @id @default(cuid())
+  title        String
+  subtitle     String?
+  description  String   @db.Text
+  date         DateTime
+  location     String?
+  isFeatured   Boolean  @default(false)
+  chapter      String?
+  coverUrl     String?
+  coverCaption String?
+  authorId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  media  MediaAsset[]
+  tags   MemoryTag[]
+
+  @@index([date])
+  @@index([authorId])
+}
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  url          String
+  secureUrl    String
+  publicId     String
+  format       String?
+  resourceType String   @default("image")
+  bytes        Int?
+  width        Int?
+  height       Int?
+  caption      String?
+  order        Int      @default(0)
+  memoryId     String?
+  createdAt    DateTime @default(now())
+
+  memory Memory? @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+
+  @@index([memoryId])
+}
+
+model Tag {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  createdAt DateTime    @default(now())
+  memories  MemoryTag[]
+}
+
+model MemoryTag {
+  memoryId String
+  tagId    String
+
+  memory Memory @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([memoryId, tagId])
+  @@index([tagId])
+}
+
+model DiaryEntry {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  date        DateTime
+  mood        String?
+  location    String?
+  readingTime String?
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([date])
+  @@index([authorId])
+}
+
+model Letter {
+  id          String    @id @default(cuid())
+  title       String
+  content     String    @db.Text
+  date        DateTime
+  location    String?
+  sealColor   String?   @default("terracotta")
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  senderId    String
+  recipientId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  sender    User @relation("SentLetters", fields: [senderId], references: [id], onDelete: Restrict)
+  recipient User @relation("ReceivedLetters", fields: [recipientId], references: [id], onDelete: Restrict)
+
+  @@index([date])
+  @@index([senderId])
+  @@index([recipientId])
+}

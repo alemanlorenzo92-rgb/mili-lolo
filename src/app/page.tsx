@@ -1,69 +1,108 @@
-import Image from "next/image";
+import { Header } from "@/components/layout/Header";
+import { HeroSection } from "@/components/home/HeroSection";
+import { CategoryNav } from "@/components/home/CategoryNav";
+import { QuoteInterlude } from "@/components/home/QuoteInterlude";
+import { RecentMoments, RealMomentItem } from "@/components/home/RecentMoments";
+import { Footer } from "@/components/layout/Footer";
+import { prisma } from "@/lib/prisma";
+import { requireCurrentUser } from "@/lib/auth";
 
-export default function Home() {
+export default async function HomePage() {
+  const currentUser = await requireCurrentUser();
+
+  const [featuredMemory, memoryCount, diaryCount, letterCount, recentMemories, recentDiaries, recentLetters] =
+    await Promise.all([
+      prisma.memory.findFirst({
+        where: { isFeatured: true },
+        orderBy: { date: "desc" },
+      }).then(async (feat) => {
+        if (feat) return feat;
+        return prisma.memory.findFirst({ orderBy: { date: "desc" } });
+      }),
+      prisma.memory.count(),
+      prisma.diaryEntry.count(),
+      prisma.letter.count(),
+      prisma.memory.findMany({
+        include: { author: true, tags: { include: { tag: true } } },
+        orderBy: { date: "desc" },
+        take: 4,
+      }),
+      prisma.diaryEntry.findMany({
+        include: { author: true },
+        orderBy: { date: "desc" },
+        take: 2,
+      }),
+      prisma.letter.findMany({
+        include: { sender: true, recipient: true },
+        orderBy: { date: "desc" },
+        take: 2,
+      }),
+    ]);
+
+  const moments: RealMomentItem[] = [
+    ...recentMemories.map((m) => ({
+      id: m.id,
+      type: "recuerdo" as const,
+      title: m.title,
+      subtitle: m.subtitle,
+      excerpt: m.description,
+      date: m.date,
+      location: m.location,
+      author: m.author.displayName,
+      imageUrl: m.coverUrl,
+      imageCaption: m.coverCaption,
+      tags: m.tags.map((t) => t.tag.name),
+      href: `/recuerdos/${m.id}`,
+    })),
+    ...recentDiaries.map((d) => ({
+      id: d.id,
+      type: "diario" as const,
+      title: d.title,
+      subtitle: d.mood,
+      excerpt: d.content,
+      date: d.date,
+      location: d.location,
+      author: d.author.displayName,
+      href: `/diario/${d.id}`,
+    })),
+    ...recentLetters.map((l) => ({
+      id: l.id,
+      type: "carta" as const,
+      title: l.title,
+      subtitle: `Para ${l.recipient.displayName}`,
+      excerpt: l.content,
+      date: l.date,
+      location: l.location,
+      author: l.sender.displayName,
+      href: `/cartas/${l.id}`,
+    })),
+  ]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 6);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col min-h-screen bg-[#FAF8F5] text-[#1C1A17] paper-texture">
+      <Header currentUser={currentUser} />
+
+      <main className="flex-1">
+        {/* Sección Hero conectada a la base de datos real */}
+        <HeroSection featuredMemory={featuredMemory} />
+
+        {/* Las Tres Puertas del Archivo con conteos reales de PostgreSQL */}
+        <CategoryNav
+          memoryCount={memoryCount}
+          diaryCount={diaryCount}
+          letterCount={letterCount}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {/* Interludio Cinematográfico */}
+        <QuoteInterlude />
+
+        {/* Momentos Recientes reales extraídos de la base de datos */}
+        <RecentMoments moments={moments} />
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -1,26 +1,180 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf8f5;
+  --foreground: #1c1a17;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --font-serif: var(--font-serif), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", system-ui, sans-serif;
+  --color-warm-bg: #faf8f5;
+  --color-warm-card: #f4efe6;
+  --color-warm-card-hover: #ede6da;
+  --color-warm-border: #e6dfd3;
+  --color-warm-border-subtle: #f0ebe2;
+  --color-ink-primary: #1c1a17;
+  --color-ink-secondary: #4a453f;
+  --color-ink-muted: #827b73;
+  --color-terracotta: #92543e;
+  --color-terracotta-soft: #f4ede7;
+  --color-terracotta-dark: #743e2d;
+  --color-olive: #5f634f;
+  --color-olive-soft: #edf0e6;
+  --color-rose-dust: #e2c2b9;
+  --color-rose-soft: #fbf2ee;
+  --color-rose-deep: #b76e5c;
+  --color-wax-red: #87362a;
+  --color-wax-seal: #993d2c;
+  --color-gold-leaf: #c49b66;
+  --color-gold-soft: #fbf6ee;
+  --color-parchment: #fcfaf7;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-warm-bg);
+  color: var(--color-ink-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: #ebdcd7;
+  color: #2b231d;
+}
+
+.editorial-serif {
+  font-family: var(--font-serif);
+}
+
+.editorial-sans {
+  font-family: var(--font-sans);
+}
+
+/* Sutil textura de papel artesanal */
+.paper-texture {
+  background-color: #faf8f5;
+  background-image: radial-gradient(#26221c 0.45px, transparent 0.45px);
+  background-size: 24px 24px;
+}
+
+/* Sombra suave de fotografías analógicas */
+.photo-shadow {
+  box-shadow: 0 10px 30px -10px rgba(32, 26, 20, 0.1),
+              0 2px 6px -1px rgba(32, 26, 20, 0.04);
+}
+
+.photo-shadow-hover:hover {
+  box-shadow: 0 20px 40px -12px rgba(32, 26, 20, 0.16),
+              0 6px 14px -2px rgba(32, 26, 20, 0.06);
+}
+
+/* Sello de lacre artesanal */
+.wax-seal-badge {
+  background: radial-gradient(circle at 35% 35%, #b44a38 0%, #87362a 70%, #682318 100%);
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.35),
+              inset 0 -3px 4px rgba(0, 0, 0, 0.45),
+              0 4px 10px rgba(104, 35, 24, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Cinta washi tape decorativa para fotos */
+.washi-tape-top {
+  position: relative;
+}
+.washi-tape-top::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 90px;
+  height: 24px;
+  background-color: rgba(234, 222, 208, 0.75);
+  border-left: 2px dashed rgba(184, 169, 153, 0.4);
+  border-right: 2px dashed rgba(184, 169, 153, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(1px);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Borde tipo papelería de correspondencia fina */
+.stationery-border {
+  border: 1px solid #e6dfd3;
+  outline: 1px solid #e6dfd3;
+  outline-offset: -6px;
+}
+
+/* Páginas de diario con renglones tenues */
+.lined-paper {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    #ede5d8 31px,
+    #ede5d8 32px
+  );
+  line-height: 32px;
+}
+
+/* Animaciones románticas */
+@keyframes heartPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.12);
+  }
+  40% {
+    transform: scale(0.98);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+}
+
+.animate-heart-pulse {
+  animation: heartPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float-gentle {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accesibilidad: Reducir animaciones si el usuario lo prefiere */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
