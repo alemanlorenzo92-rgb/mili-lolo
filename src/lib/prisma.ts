@@ -1,35 +1,14 @@
 import { PrismaClient } from "@prisma/client";
-import fs from "fs";
-import path from "path";
 
-function resolveDatabaseUrl(): string | undefined {
-  if (process.env.NODE_ENV === "production") {
-    return process.env.DATABASE_URL;
+function getDatabaseUrl(): string | undefined {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) {
+    return undefined;
   }
-  try {
-    const cwd = process.cwd();
-    for (const envFile of [".env.local", ".env"]) {
-      const fullPath = path.resolve(/*turbopackIgnore: true*/ cwd, envFile);
-      if (fs.existsSync(fullPath)) {
-        const content = fs.readFileSync(fullPath, "utf-8");
-        const match = content.match(/^DATABASE_URL=["']?([^"'\r\n]+)["']?/m);
-        if (match && match[1]) {
-          return match[1].trim();
-        }
-      }
-    }
-  } catch {
-    // fallback
-  }
-  return process.env.DATABASE_URL;
+  return url;
 }
 
-const resolvedUrl = resolveDatabaseUrl();
-if (resolvedUrl) {
-  process.env.DATABASE_URL = resolvedUrl;
-}
-
-const databaseUrl = resolvedUrl || process.env.DATABASE_URL;
+const databaseUrl = getDatabaseUrl();
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
